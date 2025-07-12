@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: tmysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql.cnf:/etc/mysql/conf.d/my.cnf
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_PASSWORD=testpassword
+      - MYSQL_DATABASE=testdb
+      - MYSQL_USER=testuser
+      - TZ=Asia/Shanghai
+    command: --default-authentication-plugin=caching_sha2_password
+    restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  redis:
+    image: redis:latest
+    container_name: my-redis
+    command: redis-server /usr/local/etc/redis/redis.conf
+    working_dir: /usr/local/etc/redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    restart: always
