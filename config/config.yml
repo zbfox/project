@@ -1,0 +1,16 @@
+server:
+  port: 8080
+
+mysql:
+  host: 127.0.0.1
+  port: 3360
+  user: root
+  password: root
+  dbname: testdb
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  username: admin
+  password: zb#@?2001
+  db: 0
