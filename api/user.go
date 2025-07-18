@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"reflect"
 	"strconv"
 )
 
@@ -40,7 +39,7 @@ func GetUser(c *gin.Context) {
 func AddUser(c *gin.Context) {
 	var user model.User
 	if err := c.ShouldBindJSON(&user); err != nil {
-		fmt.Printf("接收到用户信息: %+v\n", user)
+
 		c.JSON(400, gin.H{
 			"message": "参数绑定失败",
 			"error":   err.Error(),
@@ -86,11 +85,24 @@ func ListUsers(c *gin.Context) {
 
 // UpdateUser 更新用户数据
 func UpdateUser(c *gin.Context) {
-	//var user model.User
-	id, _ := strconv.Atoi(c.Param("id"))
-	//反射输出数据类型
-	log.Println("id: ", reflect.TypeOf(id))
+	var user model.User
 
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(400, gin.H{
+			"message": "参数绑定失败",
+			"error":   err.Error(),
+		})
+		return
+	}
+	log.Printf("%+v\n", user)
+	c.JSON(http.StatusOK, gin.H{
+		"message": "success",
+		"data":    "update user",
+	})
+}
+
+// UpdatePassword 更新用户密码
+func UpdatePassword(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "success",
 		"data":    "update user",
