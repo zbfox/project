@@ -4,10 +4,11 @@ import (
 	db "TestGin/config"
 	"TestGin/model"
 	"fmt"
-	"net/http"
-	"strconv"
-
 	"github.com/gin-gonic/gin"
+	"log"
+	"net/http"
+	"reflect"
+	"strconv"
 )
 
 // GetUser 获取用户信息
@@ -35,6 +36,7 @@ func GetUser(c *gin.Context) {
 	})
 }
 
+// AddUser 添加用户
 func AddUser(c *gin.Context) {
 	var user model.User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -76,9 +78,21 @@ func ListUsers(c *gin.Context) {
 		userResponses[i] = model.UserToResponse(user)
 	}
 
-	// 返回结果
 	c.JSON(http.StatusOK, gin.H{
 		"message": "success",
 		"data":    userResponses,
+	})
+}
+
+// UpdateUser 更新用户数据
+func UpdateUser(c *gin.Context) {
+	//var user model.User
+	id, _ := strconv.Atoi(c.Param("id"))
+	//反射输出数据类型
+	log.Println("id: ", reflect.TypeOf(id))
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "success",
+		"data":    "update user",
 	})
 }

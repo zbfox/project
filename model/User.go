@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"gorm.io/gorm/utils"
 	"time"
 
 	"gorm.io/gorm"
@@ -36,9 +35,14 @@ func (u *User) AfterCreate(db *gorm.DB) (err error) {
 	return nil
 }
 
-// BeforeFind 查询之前执行
+// AfterFind 查询结束后执行
+func (u *User) AfterFind(db *gorm.DB) (err error) {
+	fmt.Println("AfterFind", u)
+	return nil
+}
+
 func (u *User) BeforeFind(db *gorm.DB) (err error) {
 
-	fmt.Println("BeforeFind" + utils.ToString(u.ID))
+	fmt.Println("BeforeFind")
 	return nil
 }

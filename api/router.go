@@ -26,10 +26,10 @@ func RegisterRoutes(r *gin.Engine) {
 	user := v1.Group("/user")
 	{
 		user.POST("/add", AddUser)
-		//user.PUT("/update/:id", UpdateUser)
+		user.GET("/update/:id", UpdateUser)
 		//user.DELETE("/delete/:id", DeleteUser)
 		user.GET("/list", ListUsers)
-		user.GET("/:id", GetUser)
+		user.GET("/get/:id", GetUser)
 	}
 
 	// 其他路由
@@ -37,5 +37,10 @@ func RegisterRoutes(r *gin.Engine) {
 		c.JSON(200, gin.H{
 			"message": "hello world",
 		})
+	})
+
+	r.GET("/", func(c *gin.Context) {
+		//	重定向
+		//c.Redirect(302, "https://www.baidu.com")
 	})
 }

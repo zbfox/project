@@ -22,7 +22,9 @@ func InitDB() {
 	)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info), // 打印全部 SQL
+		// 配置GORM以仅打印API执行的SQL语句
+		PrepareStmt: true,
+		Logger:      logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
 		panic("数据库连接失败: " + err.Error())
