@@ -3,11 +3,13 @@ package api
 import (
 	db "TestGin/config"
 	"TestGin/model"
+	"context"
+	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 // GetUser 获取用户信息
@@ -18,17 +20,37 @@ import (
 func GetUser(c *gin.Context) {
 	var u model.User
 
-	id, _ := strconv.Atoi(c.Param("id"))
-	result := db.DB.Where("id = ?", id).First(&u)
+	// id, _ := strconv.Atoi(c.Param("id"))
+	uuid := c.Param("id")
+	redisClient := db.GetRedisClient()
+	ctx := context.Background()
+	cacheKey := fmt.Sprintf("user:%s", uuid)
+	userJson, err := redisClient.Get(ctx, cacheKey).Result()
+	if err == nil {
+		if err := json.Unmarshal([]byte(userJson), &u); err == nil {
+			us := model.UserToResponse(u)
+			c.JSON(200, gin.H{
+				"message": "user (from cache)",
+				"data":    us,
+			})
+			return
+		}
+	}
+	// 缓存未命中，查数据库
+	result := db.DB.Where("uuid = ?", uuid).First(&u)
 	if result.RowsAffected == 0 {
 		c.JSON(http.StatusNotFound, gin.H{
 			"message": "用户不存在",
-			"id":      id,
+			"id":      uuid,
 		})
 		return
 	}
+	// 查到后写入缓存
+	userBytes, _ := json.Marshal(u)
+	redisClient.Set(ctx, cacheKey, userBytes, 0)
+
 	us := model.UserToResponse(u)
-	fmt.Printf("user: %+v\n", us)
+	log.Printf("user: %+v\n", us)
 	c.JSON(200, gin.H{
 		"message": "user",
 		"data":    us,
@@ -54,6 +76,11 @@ func AddUser(c *gin.Context) {
 		})
 		return
 	}
+	redisClient := db.GetRedisClient()
+	ctx := context.Background()
+	cacheKey := fmt.Sprintf("user:%d", user.ID)
+	userBytes, _ := json.Marshal(user)
+	redisClient.Set(ctx, cacheKey, userBytes, 0)
 
 	c.JSON(200, gin.H{
 		"message": "用户添加成功",

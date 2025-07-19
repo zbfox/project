@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
+
 	"github.com/redis/go-redis/v9"
 )
 
@@ -25,4 +26,9 @@ func InitRedis() {
 	}
 
 	rdb = redisDb
+}
+
+// GetRedisClient 获取Redis客户端
+func GetRedisClient() *redis.Client {
+	return rdb
 }

@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type User struct {
 	ID        uint           `gorm:"primaryKey;autoIncrement" json:"id"`
+	UUID      string         `gorm:"type:varchar(36);not null;uniqueIndex" json:"uuid"`                        // 用户唯一标识
 	Username  string         `gorm:"type:varchar(20);not null;uniqueIndex" json:"username" binding:"required"` // 用户名，唯一
 	Password  string         `gorm:"type:varchar(100);not null" json:"password"  binding:"required"`           // 密码
 	Email     string         `gorm:"type:varchar(100);uniqueIndex" json:"email" binding:"omitempty,email"`     // 邮箱，唯一
@@ -41,8 +43,9 @@ func (u *User) AfterFind(db *gorm.DB) (err error) {
 	return nil
 }
 
-func (u *User) BeforeFind(db *gorm.DB) (err error) {
-
-	fmt.Println("BeforeFind")
-	return nil
+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+	if u.UUID == "" {
+		u.UUID = uuid.New().String()
+	}
+	return
 }

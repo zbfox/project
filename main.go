@@ -3,6 +3,7 @@ package main
 import (
 	"TestGin/api"
 	"TestGin/config"
+	"TestGin/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,6 +13,7 @@ func main() {
 	config.InitConfig()
 	config.InitDB()
 	config.InitRedis()
+	util.InitWebsocket(r)
 
 	//fmt.Println("MySQL Host:", config.Conf.MySQL.Host)
 	// 注册路由
