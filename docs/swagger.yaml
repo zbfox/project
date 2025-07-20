@@ -1,16 +1,247 @@
-basePath: 这里写base path
-host: 这里写接口服务的host
+definitions:
+  middleware.Response:
+    properties:
+      code:
+        description: 自定义状态码
+        type: integer
+      data:
+        description: 返回数据
+      message:
+        description: 提示信息
+        type: string
+    type: object
+  model.Article:
+    properties:
+      content:
+        description: 内容
+        type: string
+      created_at:
+        description: 创建时间
+        type: string
+      id:
+        description: 主键
+        type: integer
+      status:
+        allOf:
+        - $ref: '#/definitions/model.ArticleStatus'
+        description: 状态
+      title:
+        description: 标题
+        type: string
+      updated_at:
+        description: 更新时间
+        type: string
+      user_id:
+        description: 外键关联用户ID
+        type: integer
+    type: object
+  model.ArticleStatus:
+    enum:
+    - draft
+    - published
+    type: string
+    x-enum-varnames:
+    - Draft
+    - Published
+  model.User:
+    properties:
+      created_at:
+        description: 创建时间
+        type: string
+      email:
+        description: 邮箱，唯一
+        type: string
+      id:
+        type: integer
+      password:
+        description: 密码
+        type: string
+      phone:
+        description: 手机号
+        type: string
+      role:
+        description: 角色
+        type: string
+      status:
+        description: 状态 active/disabled
+        type: string
+      updated_at:
+        description: 更新时间
+        type: string
+      username:
+        description: 用户名，唯一
+        type: string
+      uuid:
+        description: 用户唯一标识
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  model.UserResponse:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      phone:
+        type: string
+      role:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
 info:
-  contact:
-    email: support@swagger.io
-    name: 这里写联系人信息
-    url: http://www.swagger.io/support
-  description: 这里写描述信息
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
-  title: 这里写标题
-  version: "1.0"
-paths: {}
+  contact: {}
+paths:
+  /api/article/{id}/status:
+    put:
+      description: 更新文章状态
+      parameters:
+      - description: 文章ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: '请求体 (status: draft/published)'
+        in: body
+        name: request
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: 更新成功返回
+          schema:
+            $ref: '#/definitions/middleware.Response'
+      summary: 更新文章状态
+      tags:
+      - 文章
+  /api/articles//get/:id:
+    get:
+      description: 查询文章
+      parameters:
+      - description: 文章ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: 文章信息
+          schema:
+            $ref: '#/definitions/model.Article'
+      summary: 查询文章
+      tags:
+      - 文章
+  /api/articles/delete/:id:
+    delete:
+      description: 删除文章
+      parameters:
+      - description: 文章ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: 文章信息
+          schema:
+            type: string
+      summary: 删除文章
+      tags:
+      - 文章
+  /api/user/add:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            type: string
+      summary: 添加用户
+      tags:
+      - 用户
+  /api/user/get/:id:
+    get:
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            type: string
+      summary: 获取用户信息
+      tags:
+      - 用户
+  /api/user/list:
+    get:
+      description: 返回所有用户信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 用户列表
+          schema:
+            items:
+              $ref: '#/definitions/model.UserResponse'
+            type: array
+      summary: 获取用户列表
+      tags:
+      - 用户
+  /api/user/update/password:
+    post:
+      description: 更新用户密码
+      parameters:
+      - description: 用户信息
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            $ref: '#/definitions/middleware.Response'
+      summary: 更新用户密码
+      tags:
+      - 用户
+  /api/user/update/user:
+    post:
+      description: 更新用户数据
+      parameters:
+      - description: 用户信息
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            $ref: '#/definitions/middleware.Response'
+      summary: 更新用户数据
+      tags:
+      - 用户
 swagger: "2.0"

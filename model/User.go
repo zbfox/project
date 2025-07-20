@@ -43,6 +43,7 @@ func (u *User) AfterFind(db *gorm.DB) (err error) {
 	return nil
 }
 
+// BeforeCreate 创建之前执行
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	if u.UUID == "" {
 		u.UUID = uuid.New().String()

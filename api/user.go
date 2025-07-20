@@ -2,21 +2,23 @@ package api
 
 import (
 	db "TestGin/config"
+	res "TestGin/middleware"
 	"TestGin/model"
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
 )
 
 // GetUser 获取用户信息
 // @Summary 获取用户信息
+// @Tags 用户
 // @Produce json
 // @Success 200 {object} string "成功"
-// @Router /api/user/:id [get]
+// @Param id path int true "用户ID"
+// @Router /api/user/get/:id [get]
 func GetUser(c *gin.Context) {
 	var u model.User
 
@@ -58,6 +60,11 @@ func GetUser(c *gin.Context) {
 }
 
 // AddUser 添加用户
+// @Summary 添加用户
+// @Tags 用户
+// @Produce json
+// @Success 200 {object} string "成功"
+// @Router /api/user/add [POST]
 func AddUser(c *gin.Context) {
 	var user model.User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -89,12 +96,18 @@ func AddUser(c *gin.Context) {
 }
 
 // ListUsers 用户列表
+// @Summary 获取用户列表
+// @Tags 用户
+// @Description 返回所有用户信息
+// @Produce json
+// @Success 200 {array} model.UserResponse "用户列表"
+// @Router /api/user/list [GET]
 func ListUsers(c *gin.Context) {
 	var users []model.User
 
 	// 查询用户数据
 	if err := db.DB.Unscoped().Find(&users).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		res.Error(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -103,35 +116,35 @@ func ListUsers(c *gin.Context) {
 	for i, user := range users {
 		userResponses[i] = model.UserToResponse(user)
 	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "success",
-		"data":    userResponses,
-	})
+	res.Success(c, userResponses)
 }
 
 // UpdateUser 更新用户数据
+// @Summary 更新用户数据
+// @Tags 用户
+// @Description 更新用户数据
+// @Produce json
+// @Param user body model.User true "用户信息"
+// @Success 200 {object} middleware.Response "成功"
+// @Router /api/user/update/user [POST]
 func UpdateUser(c *gin.Context) {
 	var user model.User
-
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(400, gin.H{
-			"message": "参数绑定失败",
-			"error":   err.Error(),
-		})
+		res.Error(c, http.StatusBadRequest, err)
 		return
 	}
 	log.Printf("%+v\n", user)
-	c.JSON(http.StatusOK, gin.H{
-		"message": "success",
-		"data":    "update user",
-	})
+	res.Success(c, "更新用户成功")
 }
 
 // UpdatePassword 更新用户密码
+// @Summary 更新用户密码
+// @Description 更新用户密码
+// @Produce json
+// @Tags 用户
+// @Param user body model.User true "用户信息"
+// @Success 200 {object} middleware.Response "成功"
+// @Router /api/user/update/password [POST]
 func UpdatePassword(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "success",
-		"data":    "update user",
-	})
+	res.Success(c, "更新密码成功")
 }

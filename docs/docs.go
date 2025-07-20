@@ -9,31 +9,388 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "张三",
-            "url": "http://www.swagger.io/support",
-            "email": "support@swagger.io"
-        },
-        "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-        },
+        "contact": {},
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {}
+    "paths": {
+        "/api/article/{id}/status": {
+            "put": {
+                "description": "更新文章状态",
+                "tags": [
+                    "文章"
+                ],
+                "summary": "更新文章状态",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "文章ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "请求体 (status: draft/published)",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功返回",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/articles//get/:id": {
+            "get": {
+                "description": "查询文章",
+                "tags": [
+                    "文章"
+                ],
+                "summary": "查询文章",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "文章ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "文章信息",
+                        "schema": {
+                            "$ref": "#/definitions/model.Article"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/articles/delete/:id": {
+            "delete": {
+                "description": "删除文章",
+                "tags": [
+                    "文章"
+                ],
+                "summary": "删除文章",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "文章ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "文章信息",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/add": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "添加用户",
+                "responses": {
+                    "200": {
+                        "description": "成功",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/get/:id": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "获取用户信息",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/list": {
+            "get": {
+                "description": "返回所有用户信息",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "获取用户列表",
+                "responses": {
+                    "200": {
+                        "description": "用户列表",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.UserResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/update/password": {
+            "post": {
+                "description": "更新用户密码",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "更新用户密码",
+                "parameters": [
+                    {
+                        "description": "用户信息",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/update/user": {
+            "post": {
+                "description": "更新用户数据",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "更新用户数据",
+                "parameters": [
+                    {
+                        "description": "用户信息",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.Response"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "middleware.Response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "自定义状态码",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "返回数据"
+                },
+                "message": {
+                    "description": "提示信息",
+                    "type": "string"
+                }
+            }
+        },
+        "model.Article": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "内容",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.ArticleStatus"
+                        }
+                    ]
+                },
+                "title": {
+                    "description": "标题",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "更新时间",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "外键关联用户ID",
+                    "type": "integer"
+                }
+            }
+        },
+        "model.ArticleStatus": {
+            "type": "string",
+            "enum": [
+                "draft",
+                "published"
+            ],
+            "x-enum-varnames": [
+                "Draft",
+                "Published"
+            ]
+        },
+        "model.User": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "邮箱，唯一",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "password": {
+                    "description": "密码",
+                    "type": "string"
+                },
+                "phone": {
+                    "description": "手机号",
+                    "type": "string"
+                },
+                "role": {
+                    "description": "角色",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "状态 active/disabled",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "更新时间",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "用户名，唯一",
+                    "type": "string"
+                },
+                "uuid": {
+                    "description": "用户唯一标识",
+                    "type": "string"
+                }
+            }
+        },
+        "model.UserResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        }
+    }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
-	Host:             "这里写接口服务的host",
-	BasePath:         "这里写base path",
+	Version:          "",
+	Host:             "",
+	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "这里写标题",
-	Description:      "这里写描述信息",
+	Title:            "",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

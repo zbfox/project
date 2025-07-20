@@ -2,7 +2,6 @@ package api
 
 import (
 	_ "TestGin/docs"
-
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -14,21 +13,22 @@ func RegisterRoutes(r *gin.Engine) {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// API CURD 分组
-	v1 := r.Group("/api/")
+	v1 := r.Group("/api")
 	article := v1.Group("/article")
 	{
 		//article.POST("/add", AddArticle)
 		//article.PUT("/update/:id", UpdateArticle)
+		//更新文章状态
+		article.PUT("/:id/status", UpdateArticleStatus)
 		article.DELETE("/delete/:id", DeleteArticle)
 		//article.GET("/list", ListArticle)
-		article.GET("/:id", GetArticle)
+		article.GET("/get/:id", GetArticle)
 	}
 	user := v1.Group("/user")
 	{
 		user.POST("/add", AddUser)
 		user.GET("/list", ListUsers)
 		user.GET("/get/:id", GetUser)
-
 		update := user.Group("/update")
 		{
 			update.POST("/password", UpdatePassword)
