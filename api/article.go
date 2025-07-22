@@ -60,7 +60,7 @@ func GetArticle(c *gin.Context) {
 // @Description 更新文章状态
 // @Tags 文章
 // @Param id path int true "文章ID"
-// @Param request body model.ArticleStatus true "请求体 (status: draft/published)"
+// @Param request body model.ArticleStatus true "请求体 (status: 0=Draft, 1=Pending, 2=Published)"
 // @Success 200 {object} middleware.Response "更新成功返回"
 // @Router /api/article/{id}/status [put]
 func UpdateArticleStatus(c *gin.Context) {
@@ -71,4 +71,44 @@ func UpdateArticleStatus(c *gin.Context) {
 	sta := c.ShouldBindJSON(&article.Status)
 	log.Printf("id:%v----status:%s\n", aid, sta)
 	res.Success(c, "操作成功")
+}
+
+// UpdateArticle 更新文章
+// @Summary 更新文章
+// @Description 更新文章
+// @Tags 文章
+// @Param id path int true "文章ID"
+// @Param request body model.Article true "请求体"
+// @Success 200 {object} middleware.Response "更新成功返回"
+// @Router /api/article/{id} [put]
+func UpdateArticle(c *gin.Context) {
+	var article model.Article
+	if err := c.ShouldBindJSON(&article); err != nil {
+		res.Error(c, 400, err)
+		return
+	}
+	log.Printf("%+v\n", article)
+	res.Success(c, "更新文章成功")
+}
+
+// AddArticle 添加文章
+// @Summary 添加文章
+// @Description 添加文章
+// @Tags 文章
+// @Param request body model.Article true "请求体"
+// @Success 200 {object} middleware.Response "添加成功返回"
+// @Router /api/article/add [post]
+func AddArticle(c *gin.Context) {
+	var article model.Article
+	if err := c.ShouldBindJSON(&article); err != nil {
+		res.Error(c, 400, err)
+		return
+	}
+
+	log.Printf("%+v\n", article)
+	if err := db.DB.Create(&article).Error; err != nil {
+		res.Error(c, 500, err)
+		return
+	}
+	res.Success(c, "添加文章成功")
 }

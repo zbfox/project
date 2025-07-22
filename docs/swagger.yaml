@@ -25,6 +25,13 @@ definitions:
         allOf:
         - $ref: '#/definitions/model.ArticleStatus'
         description: 状态
+        enum:
+        - 0
+        - 1
+        - 2
+      status_name:
+        description: 状态名称
+        type: string
       title:
         description: 标题
         type: string
@@ -35,13 +42,38 @@ definitions:
         description: 外键关联用户ID
         type: integer
     type: object
+  model.ArticleResponse:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      status:
+        type: integer
+      status_name:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
   model.ArticleStatus:
     enum:
-    - draft
-    - published
-    type: string
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-comments:
+      Draft: 草稿
+      Pending: 待审核
+      Published: 已发布
     x-enum-varnames:
     - Draft
+    - Pending
     - Published
   model.User:
     properties:
@@ -102,6 +134,29 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/article/{id}:
+    put:
+      description: 更新文章
+      parameters:
+      - description: 文章ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 请求体
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.Article'
+      responses:
+        "200":
+          description: 更新成功返回
+          schema:
+            $ref: '#/definitions/middleware.Response'
+      summary: 更新文章
+      tags:
+      - 文章
   /api/article/{id}/status:
     put:
       description: 更新文章状态
@@ -111,12 +166,12 @@ paths:
         name: id
         required: true
         type: integer
-      - description: '请求体 (status: draft/published)'
+      - description: '请求体 (status: 0=Draft, 1=Pending, 2=Published)'
         in: body
         name: request
         required: true
         schema:
-          type: string
+          type: integer
       responses:
         "200":
           description: 更新成功返回
@@ -125,7 +180,25 @@ paths:
       summary: 更新文章状态
       tags:
       - 文章
-  /api/articles//get/:id:
+  /api/article/add:
+    post:
+      description: 添加文章
+      parameters:
+      - description: 请求体
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.Article'
+      responses:
+        "200":
+          description: 添加成功返回
+          schema:
+            $ref: '#/definitions/middleware.Response'
+      summary: 添加文章
+      tags:
+      - 文章
+  /api/article/get/:id:
     get:
       description: 查询文章
       parameters:
@@ -138,7 +211,7 @@ paths:
         "200":
           description: 文章信息
           schema:
-            $ref: '#/definitions/model.Article'
+            $ref: '#/definitions/model.ArticleResponse'
       summary: 查询文章
       tags:
       - 文章

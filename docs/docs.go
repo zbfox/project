@@ -15,34 +15,27 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/article/{id}/status": {
-            "put": {
-                "description": "更新文章状态",
+        "/api/article/add": {
+            "post": {
+                "description": "添加文章",
                 "tags": [
                     "文章"
                 ],
-                "summary": "更新文章状态",
+                "summary": "添加文章",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "文章ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "请求体 (status: draft/published)",
+                        "description": "请求体",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/model.Article"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功返回",
+                        "description": "添加成功返回",
                         "schema": {
                             "$ref": "#/definitions/middleware.Response"
                         }
@@ -50,7 +43,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/articles//get/:id": {
+        "/api/article/get/:id": {
             "get": {
                 "description": "查询文章",
                 "tags": [
@@ -70,7 +63,77 @@ const docTemplate = `{
                     "200": {
                         "description": "文章信息",
                         "schema": {
+                            "$ref": "#/definitions/model.ArticleResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/article/{id}": {
+            "put": {
+                "description": "更新文章",
+                "tags": [
+                    "文章"
+                ],
+                "summary": "更新文章",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "文章ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "请求体",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
                             "$ref": "#/definitions/model.Article"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功返回",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/article/{id}/status": {
+            "put": {
+                "description": "更新文章状态",
+                "tags": [
+                    "文章"
+                ],
+                "summary": "更新文章状态",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "文章ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "请求体 (status: 0=Draft, 1=Pending, 2=Published)",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功返回",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.Response"
                         }
                     }
                 }
@@ -269,11 +332,20 @@ const docTemplate = `{
                 },
                 "status": {
                     "description": "状态",
+                    "enum": [
+                        0,
+                        1,
+                        2
+                    ],
                     "allOf": [
                         {
                             "$ref": "#/definitions/model.ArticleStatus"
                         }
                     ]
+                },
+                "status_name": {
+                    "description": "状态名称",
+                    "type": "string"
                 },
                 "title": {
                     "description": "标题",
@@ -289,14 +361,50 @@ const docTemplate = `{
                 }
             }
         },
+        "model.ArticleResponse": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "status_name": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "model.ArticleStatus": {
-            "type": "string",
+            "type": "integer",
             "enum": [
-                "draft",
-                "published"
+                0,
+                1,
+                2
             ],
+            "x-enum-comments": {
+                "Draft": "草稿",
+                "Pending": "待审核",
+                "Published": "已发布"
+            },
             "x-enum-varnames": [
                 "Draft",
+                "Pending",
                 "Published"
             ]
         },

@@ -41,5 +41,6 @@ func InitDB() {
 	fmt.Println("数据库连接成功")
 	model.AutoMigrate(db)
 	model.AutoMigrateArticle(db)
+	model.AutoMigrateComment(db)
 	DB = db
 }

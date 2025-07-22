@@ -18,15 +18,28 @@ const (
 
 // Article 表结构映射 (articles)
 type Article struct {
-	ID         int64          `gorm:"primaryKey;autoIncrement" json:"id"`      // 主键
-	UserID     int64          `gorm:"not null;index" json:"user_id"`           // 外键关联用户ID
-	Title      string         `gorm:"type:varchar(200);not null" json:"title"` // 标题
-	Content    string         `gorm:"type:text;not null" json:"content"`       // 内容
-	Status     ArticleStatus  `gorm:"default: 0" json:"status"`                // 状态
-	StatusName string         `gorm:"type:varchar(8);default:'draft'" json:"status_name"`
-	CreatedAt  time.Time      `json:"created_at"`     // 创建时间
-	UpdatedAt  time.Time      `json:"updated_at"`     // 更新时间
-	DeletedAt  gorm.DeletedAt `gorm:"index" json:"-"` // 软删除
+	ID         int64          `gorm:"primaryKey;autoIncrement" json:"id"`                  // 主键
+	UserID     int64          `gorm:"not null;index" json:"user_id"`                       // 外键关联用户ID
+	Title      string         `gorm:"type:varchar(200);not null" json:"title"`             // 标题
+	Content    string         `gorm:"type:text;not null" json:"content"`                   // 内容
+	Status     ArticleStatus  `gorm:"default: 0" json:"status" enums:"0,1,2"`              // 状态
+	StatusName string         `gorm:"type:varchar(8);default:'draft'" json:"status_name" ` // 状态名称
+	CreatedAt  time.Time      `json:"created_at"`                                          // 创建时间
+	UpdatedAt  time.Time      `json:"updated_at"`                                          // 更新时间
+	DeletedAt  gorm.DeletedAt `gorm:"index" json:"-"`                                      // 软删除
+}
+
+// AfterFind 插入前
+func (a *Article) AfterFind(db *gorm.DB) (err error) {
+	switch a.Status {
+	case 1:
+		a.StatusName = "draft"
+	case 2:
+		a.StatusName = "pending"
+	default:
+		a.StatusName = "published"
+	}
+	return
 }
 
 // ArticleResponse 响应结构体

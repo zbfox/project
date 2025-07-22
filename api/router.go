@@ -16,8 +16,8 @@ func RegisterRoutes(r *gin.Engine) {
 	v1 := r.Group("/api")
 	article := v1.Group("/article")
 	{
-		//article.POST("/add", AddArticle)
-		//article.PUT("/update/:id", UpdateArticle)
+		article.POST("/add", AddArticle)
+		article.PUT("/update/:id", UpdateArticle)
 		//更新文章状态
 		article.PUT("/:id/status", UpdateArticleStatus)
 		article.DELETE("/delete/:id", DeleteArticle)
