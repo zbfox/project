@@ -165,6 +165,69 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/comment/add": {
+            "post": {
+                "description": "添加评论",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "评论"
+                ],
+                "summary": "添加评论",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "评论内容",
+                        "name": "content",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "所属帖子ID",
+                        "name": "postId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "评论用户ID",
+                        "name": "userId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "父评论ID",
+                        "name": "parentId",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "资源类型 image/video",
+                        "name": "type",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "上传文件",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\":200,\"data\":{},\"msg\":\"操作成功\"}",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/user/add": {
             "post": {
                 "produces": [

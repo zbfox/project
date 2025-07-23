@@ -232,6 +232,49 @@ paths:
       summary: 删除文章
       tags:
       - 文章
+  /api/comment/add:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 添加评论
+      parameters:
+      - description: 评论内容
+        in: formData
+        name: content
+        required: true
+        type: string
+      - description: 所属帖子ID
+        in: formData
+        name: postId
+        required: true
+        type: integer
+      - description: 评论用户ID
+        in: formData
+        name: userId
+        required: true
+        type: integer
+      - description: 父评论ID
+        in: formData
+        name: parentId
+        type: integer
+      - description: 资源类型 image/video
+        in: formData
+        name: type
+        required: true
+        type: integer
+      - description: 上传文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      responses:
+        "200":
+          description: '{"code":200,"data":{},"msg":"操作成功"}'
+          schema:
+            $ref: '#/definitions/middleware.Response'
+      summary: 添加评论
+      tags:
+      - 评论
   /api/user/add:
     post:
       produces:

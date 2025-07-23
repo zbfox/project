@@ -11,6 +11,7 @@ import (
 func RegisterRoutes(r *gin.Engine) {
 	// Swagger文档
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	r.Static("/static", "./static")
 
 	// API CURD 分组
 	v1 := r.Group("/api")
@@ -34,6 +35,14 @@ func RegisterRoutes(r *gin.Engine) {
 			update.POST("/password", UpdatePassword)
 			update.POST("/user", UpdateUser)
 		}
+	}
+	//file := v1.Group("/upload")
+	//{
+	//	//file.POST("/resources")
+	//}
+	comment := v1.Group("/comment")
+	{
+		comment.POST("/add", AddComment)
 	}
 
 	// 其他路由
