@@ -39,8 +39,9 @@ func InitDB() {
 	sqlDB.SetMaxOpenConns(c.MaxOpenConns)
 
 	fmt.Println("数据库连接成功")
-	model.AutoMigrate(db)
-	model.AutoMigrateArticle(db)
-	model.AutoMigrateComment(db)
+	model.AutoMigrate(db)        // 创建用户表结构
+	model.AutoMigrateArticle(db) // 创建文章表结构
+	model.AutoMigrateComment(db) // 创建评论表结构
+	model.AutoMigrateEmoji(db)   // 创建表情包表结构
 	DB = db
 }

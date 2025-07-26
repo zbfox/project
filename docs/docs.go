@@ -213,7 +213,7 @@ const docTemplate = `{
                     {
                         "type": "file",
                         "description": "上传文件",
-                        "name": "file",
+                        "name": "files",
                         "in": "formData",
                         "required": true
                     }

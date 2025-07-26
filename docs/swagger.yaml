@@ -264,7 +264,7 @@ paths:
         type: integer
       - description: 上传文件
         in: formData
-        name: file
+        name: files
         required: true
         type: file
       responses:

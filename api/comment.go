@@ -7,12 +7,20 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
+
+type UploadItems struct {
+	FileName string
+	File     *multipart.FileHeader
+}
 
 // AddComment 评论
 // @Summary 添加评论
@@ -24,7 +32,7 @@ import (
 // @Param userId formData int true "评论用户ID"
 // @Param parentId formData int false "父评论ID"
 // @Param type formData int true "资源类型 image/video"
-// @Param files formData files true "上传文件"
+// @Param files formData file true "上传文件"
 // @Success 200 {object} res.Response "{"code":200,"data":{},"msg":"操作成功"}"
 // @Router /api/comment/add [post]
 func AddComment(c *gin.Context) {
@@ -33,6 +41,7 @@ func AddComment(c *gin.Context) {
 	postID := c.PostForm("postId")
 	userID := c.PostForm("userId")
 	parentID := c.PostForm("parentId")
+	//typeFile := c.PostForm("type")/
 
 	postIDInt, _ := strconv.Atoi(postID)
 	userIDInt, _ := strconv.Atoi(userID)
@@ -47,7 +56,7 @@ func AddComment(c *gin.Context) {
 		ParentID: parentIDPtr,
 		Type:     1,
 	}
-	log.Printf("content:%s,postID:%s,userID:%s,parentID:%s", content, postID, userID, parentID)
+	log.Printf("form:%+v\n", form)
 	formFile, err := c.MultipartForm()
 	files := formFile.File["files"]
 	uploadPath := "./static"
@@ -56,29 +65,65 @@ func AddComment(c *gin.Context) {
 		res.Error(c, http.StatusInternalServerError, err)
 		return
 	}
-	var allowedTypes = []string{"image", "video/"}
+	var allowedTypes = []string{"image/", "video/"}
 	var allowedExt = []string{".png", ".jpg", ".jpeg", ".gif", ".mp4"}
-	if formFile.File != nil {
-		for _, file := range files {
-			if len(files) > 9 {
-				err := errors.New("最多上传9张图片")
-				res.Error(c, http.StatusInternalServerError, err)
-			}
-			fileType := util.FileType{}
-			fileType, err := util.ValidateFileType(file, util.FileTypeRule{AllowedMimePrefixes: allowedTypes, AllowedExtensions: allowedExt})
-			if err != nil {
-				res.Error(c, http.StatusInternalServerError, err)
-				return
-			}
-			// 生成目标文件名
-			fileName := "/image/" + time.Now().Format("20060102150405") + fileType.Extension
-			filePath := filepath.Join(uploadPath, fileName)
+	var fileList []string
+	var imageCount, videoCount int
 
-			if err := c.SaveUploadedFile(file, filePath); err != nil {
-				res.Error(c, http.StatusInternalServerError, err)
-				return
-			}
-		}
+	var filePaths []UploadItems
+	if formFile.File == nil {
+		res.Error(c, http.StatusBadRequest, errors.New("请选择文件"))
+		return
 	}
-	res.Success(c, "操作成功")
+	// 检查 MIME 类型
+	for _, file := range files {
+		fileType, err := util.ValidateFileType(file, util.FileTypeRule{AllowedMimePrefixes: allowedTypes, AllowedExtensions: allowedExt})
+		if err != nil {
+			res.Error(c, http.StatusInternalServerError, err)
+			return
+		}
+		// 生成目标文件名 128位的uuid
+		newV6, err := uuid.NewV6()
+		fileName := "/image/" + time.Now().Format("2006010215040") + newV6.String() + fileType.Extension
+		saveFilePath := filepath.Join(uploadPath, fileName)
+
+		if strings.HasPrefix(fileType.MimeType, "image/") {
+			imageCount++
+		} else if strings.HasPrefix(fileType.MimeType, "video/") {
+			videoCount++
+		} else {
+			res.Error(c, http.StatusBadRequest, fmt.Errorf("不支持的文件类型: %s", fileType.MimeType))
+			return
+		}
+		log.Printf("imageCount:%v,videoCount:%v\n", imageCount, videoCount)
+		filePaths = append(filePaths, UploadItems{
+			File:     file,
+			FileName: saveFilePath,
+		})
+
+	}
+
+	// 不允许混合上传
+	if imageCount > 0 && videoCount > 0 {
+		res.Error(c, http.StatusBadRequest, errors.New("不能同时上传图片和视频"))
+		return
+	}
+	if imageCount > 9 {
+		res.Error(c, http.StatusBadRequest, errors.New("最多上传 9 张图片"))
+		return
+	}
+	if videoCount > 1 {
+		res.Error(c, http.StatusBadRequest, errors.New("最多上传 1 个视频"))
+		return
+	}
+
+	for _, file := range filePaths {
+		if err := c.SaveUploadedFile(file.File, file.FileName); err != nil {
+			res.Error(c, http.StatusInternalServerError, err)
+			return
+		}
+		log.Printf("上传成功: %s", file.FileName)
+		fileList = append(fileList, file.FileName)
+	}
+	res.Success(c, fileList)
 }
