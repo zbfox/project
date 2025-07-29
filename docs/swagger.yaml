@@ -275,6 +275,23 @@ paths:
       summary: 添加评论
       tags:
       - 评论
+  /api/comment/list:
+    get:
+      description: 获取评论列表
+      parameters:
+      - description: 帖子ID
+        in: query
+        name: postId
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: '{"code":200,"data":{},"msg":"操作成功"}'
+          schema:
+            $ref: '#/definitions/middleware.Response'
+      summary: 获取评论列表
+      tags:
+      - 评论
   /api/user/add:
     post:
       produces:

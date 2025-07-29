@@ -43,6 +43,7 @@ func RegisterRoutes(r *gin.Engine) {
 	comment := v1.Group("/comment")
 	{
 		comment.POST("/add", AddComment)
+		comment.GET("/list", ListComments)
 	}
 
 	// 其他路由
