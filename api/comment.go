@@ -5,9 +5,7 @@ import (
 	res "TestGin/middleware"
 	"TestGin/model"
 	"TestGin/util"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"mime/multipart"
 	"net/http"
@@ -62,7 +60,7 @@ func AddComment(c *gin.Context) {
 	}
 	var allowedTypes = []string{"image/", "video/"}
 	var allowedExt = []string{".png", ".jpg", ".jpeg", ".gif", ".mp4"}
-	var fileList []string
+	var fileList model.StringArray
 	var imageCount, videoCount int
 
 	var filePaths []UploadItems
@@ -127,12 +125,12 @@ func AddComment(c *gin.Context) {
 	log.Printf("form:%+v\n", form)
 	uploadType, _ := model.StringToResourceType(typeFile)
 	// 将 fileList 序列化为 JSON 字符串
-	urlJSON, err := json.Marshal(fileList)
-	if err != nil {
-		log.Printf("JSON 序列化失败: %v", err)
-		res.Error(c, 500, err)
-		return
-	}
+	//urlJSON, err := json.Marshal(fileList)
+	//if err != nil {
+	//	log.Printf("JSON 序列化失败: %v", err)
+	//	res.Error(c, 500, err)
+	//	return
+	//}
 
 	tx := db.DB.Begin()
 	if err1 := db.DB.Create(&form).Error; err1 != nil {
@@ -140,10 +138,11 @@ func AddComment(c *gin.Context) {
 		res.Error(c, 500, err)
 		return
 	}
-	resource := model.CommentResource{
+
+	resource := model.Resource{
 		CommentID: form.ID,
 		Type:      uploadType,
-		URL:       string(urlJSON),
+		URLs:      fileList,
 	}
 	if err2 := db.DB.Debug().Create(&resource).Error; err2 != nil {
 		tx.Rollback()
@@ -179,24 +178,28 @@ func ListComments(c *gin.Context) {
     r.url, 
     c.created_at
   `).
-		Joins("LEFT JOIN comment_resources AS r ON r.comment_id = c.id").
+		Joins("LEFT JOIN comment_resources AS r ON c.id= r.comment_id").
 		Where("c.post_id = ?", postIDInt).
 		Scan(&results).
 		Error
-	log.Printf("comments:%+v\n", results)
 
-	//把url转为字符串数组
-	for _, result := range results {
-		bytesData, _ := json.Marshal(result.URL)
-		fmt.Printf("恢复后的 fileList: %s\n", result.URL)
-		var fileList []string
-		if err := json.Unmarshal([]byte(bytesData), &fileList); err != nil {
-			log.Fatalf("Unmarshal 失败: %v", err)
-		}
-		result.URL = fileList
-		//result.CreatedAt = util.FormatTime(result.CreatedAt)
+		//把url转为字符串数组
+	// for i := range results {
+	// 	var fileList model.StringArray
+	// 	// 反序列化
+	// 	if err := fileList.Scan(results[i].URL); err != nil {
+	// 		log.Printf("Scan失败: %v", err)
+	// 		continue
+	// 	}
+	// 	// 拼接可访问路径
+	// 	// for j, path := range fileList {
+	// 	//     fileList[j] = "http://127.0.0.1:8080/static" + path
+	// 	// }
+	// 	// 直接赋值为 fileList (model.StringArray)
 
-	}
+	// 	fileList.NormalizeSlashes()
+	// 	results[i] = fileList
+	// }
 
 	if err != nil {
 		res.Error(c, 500, err)
