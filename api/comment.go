@@ -5,11 +5,11 @@ import (
 	res "TestGin/middleware"
 	"TestGin/model"
 	"TestGin/util"
+	"encoding/json"
 	"errors"
 	"log"
 	"mime/multipart"
 	"net/http"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -42,7 +42,7 @@ func AddComment(c *gin.Context) {
 	postID := c.PostForm("postId")
 	userID := c.PostForm("userId")
 	parentID := c.PostForm("parentId")
-	typeFile := c.PostForm("type")
+	typeFile, _ := strconv.Atoi(c.PostForm("type"))
 
 	postIDInt, _ := strconv.Atoi(postID)
 	userIDInt, _ := strconv.Atoi(userID)
@@ -52,7 +52,7 @@ func AddComment(c *gin.Context) {
 
 	formFile, err := c.MultipartForm()
 	files := formFile.File["files"]
-	uploadPath := "./static"
+	uploadPath := "/static"
 
 	if err != nil {
 		res.Error(c, http.StatusInternalServerError, err)
@@ -60,7 +60,7 @@ func AddComment(c *gin.Context) {
 	}
 	var allowedTypes = []string{"image/", "video/"}
 	var allowedExt = []string{".png", ".jpg", ".jpeg", ".gif", ".mp4"}
-	var fileList model.StringArray
+	var fileList []string
 	var imageCount, videoCount int
 
 	var filePaths []UploadItems
@@ -78,7 +78,7 @@ func AddComment(c *gin.Context) {
 		// 生成目标文件名 128位的uuid
 		newV6, err := uuid.NewV6()
 		fileName := "/image/" + time.Now().Format("2006010215040") + newV6.String() + fileType.Extension
-		saveFilePath := filepath.Join(uploadPath, fileName)
+		saveFilePath := uploadPath + fileName
 
 		if strings.HasPrefix(fileType.MimeType, "image/") {
 			imageCount++
@@ -122,15 +122,14 @@ func AddComment(c *gin.Context) {
 		UserID:   uint(userIDInt),
 		ParentID: parentIDPtr,
 	}
-	log.Printf("form:%+v\n", form)
-	uploadType, _ := model.StringToResourceType(typeFile)
+
 	// 将 fileList 序列化为 JSON 字符串
-	//urlJSON, err := json.Marshal(fileList)
-	//if err != nil {
-	//	log.Printf("JSON 序列化失败: %v", err)
-	//	res.Error(c, 500, err)
-	//	return
-	//}
+	urlJSON, err := json.Marshal(fileList)
+	if err != nil {
+		log.Printf("JSON 序列化失败: %v", err)
+		res.Error(c, 500, err)
+		return
+	}
 
 	tx := db.DB.Begin()
 	if err1 := db.DB.Create(&form).Error; err1 != nil {
@@ -141,15 +140,14 @@ func AddComment(c *gin.Context) {
 
 	resource := model.Resource{
 		CommentID: form.ID,
-		Type:      uploadType,
-		URLs:      fileList,
+		Type:      model.ResourceType(typeFile),
+		URLs:      string(urlJSON),
 	}
 	if err2 := db.DB.Debug().Create(&resource).Error; err2 != nil {
 		tx.Rollback()
 		res.Error(c, 500, err)
 		return
 	}
-
 	res.Success(c, "")
 }
 
@@ -175,36 +173,21 @@ func ListComments(c *gin.Context) {
     c.user_id, 
     c.parent_id, 
     r.type, 
-    r.url, 
+    r.urls, 
     c.created_at
   `).
-		Joins("LEFT JOIN comment_resources AS r ON c.id= r.comment_id").
+		Joins("LEFT JOIN resources AS r ON r.comment_id = c.id ").
 		Where("c.post_id = ?", postIDInt).
 		Scan(&results).
 		Error
 
-		//把url转为字符串数组
-	// for i := range results {
-	// 	var fileList model.StringArray
-	// 	// 反序列化
-	// 	if err := fileList.Scan(results[i].URL); err != nil {
-	// 		log.Printf("Scan失败: %v", err)
-	// 		continue
-	// 	}
-	// 	// 拼接可访问路径
-	// 	// for j, path := range fileList {
-	// 	//     fileList[j] = "http://127.0.0.1:8080/static" + path
-	// 	// }
-	// 	// 直接赋值为 fileList (model.StringArray)
-
-	// 	fileList.NormalizeSlashes()
-	// 	results[i] = fileList
-	// }
+	//log.Printf("results:%+v\n", results)
+	resultsRes := model.CommentToResponse(results)
 
 	if err != nil {
 		res.Error(c, 500, err)
 		return
 	}
 
-	res.Success(c, results)
+	res.Success(c, resultsRes)
 }
