@@ -3,13 +3,12 @@ package config
 import (
 	"context"
 	"fmt"
-
 	"github.com/redis/go-redis/v9"
 )
 
 var rdb *redis.Client
 
-func InitRedis() {
+func InitRedis() *redis.Client {
 	r := Conf.Redis
 
 	redisDb := redis.NewClient(&redis.Options{
@@ -26,9 +25,16 @@ func InitRedis() {
 	}
 
 	rdb = redisDb
+	return redisDb
 }
 
 // GetRedisClient 获取Redis客户端
 func GetRedisClient() *redis.Client {
 	return rdb
 }
+
+// CreateRedisCache 创建go-cache NewRedisCache
+//func CreateRedisCache() {
+//	cache.New()
+//	return
+//}

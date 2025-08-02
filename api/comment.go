@@ -178,7 +178,7 @@ func ListComments(c *gin.Context) {
   `).
 		Joins("LEFT JOIN resources AS r ON r.comment_id = c.id ").
 		Where("c.post_id = ?", postIDInt).
-		Scan(&results).
+		Find(&results).
 		Error
 
 	//log.Printf("results:%+v\n", results)

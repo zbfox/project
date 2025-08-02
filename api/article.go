@@ -62,14 +62,14 @@ func GetArticle(c *gin.Context) {
 // @Param id path int true "文章ID"
 // @Param request body model.ArticleStatus true "请求体 (status: 0=Draft, 1=Pending, 2=Published)"
 // @Success 200 {object} middleware.Response "更新成功返回"
-// @Router /api/article/{id}/status [put]
+// @Router /api/article/{uuid}/status [put]
 func UpdateArticleStatus(c *gin.Context) {
 	var article model.Article
-	article.Status = model.Draft
-	aid, _ := strconv.Atoi(c.Param("id"))
+	//article.Status = model.Draft
+	aid := c.Param("uuid")
 	//打印请求体
 	sta := c.ShouldBindJSON(&article.Status)
-	log.Printf("id:%v----status:%s\n", aid, sta)
+	log.Printf("id:%s----status:%s\n", aid, sta)
 	res.Success(c, "操作成功")
 }
 

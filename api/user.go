@@ -12,6 +12,8 @@ import (
 	"net/http"
 )
 
+var redisClient = db.GetRedisClient()
+
 // GetUser 获取用户信息
 // @Summary 获取用户信息
 // @Tags 用户
@@ -24,7 +26,7 @@ func GetUser(c *gin.Context) {
 
 	// id, _ := strconv.Atoi(c.Param("id"))
 	uuid := c.Param("id")
-	redisClient := db.GetRedisClient()
+
 	ctx := context.Background()
 	cacheKey := fmt.Sprintf("user:%s", uuid)
 	userJson, err := redisClient.Get(ctx, cacheKey).Result()
@@ -129,10 +131,28 @@ func ListUsers(c *gin.Context) {
 // @Router /api/user/update/user [POST]
 func UpdateUser(c *gin.Context) {
 	var user model.User
+	//开启事务
+	tx := db.DB.Begin()
 	if err := c.ShouldBindJSON(&user); err != nil {
 		res.Error(c, http.StatusBadRequest, err)
 		return
 	}
+	err := tx.Where("id = ?", user.UUID).Updates(&user).Error
+	if err != nil {
+		//回滚事务
+		tx.Rollback()
+		res.Error(c, 500, err)
+		return
+	}
+	tx.Commit()
+	//同步更新到Redis
+	ctx := context.Background()
+	err = redisClient.Set(ctx, fmt.Sprintf("user:%s", user.UUID), user, 0).Err()
+	if err != nil {
+		res.Error(c, 500, err)
+		return
+	}
+
 	log.Printf("%+v\n", user)
 	res.Success(c, "更新用户成功")
 }
@@ -146,5 +166,20 @@ func UpdateUser(c *gin.Context) {
 // @Success 200 {object} middleware.Response "成功"
 // @Router /api/user/update/password [POST]
 func UpdatePassword(c *gin.Context) {
+	//加强修改密码的流程
+	var user model.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		res.Error(c, http.StatusBadRequest, err)
+		return
+	}
+	//if user.Password != user.NewPassword {
+	//	res.Error(c, http.StatusBadRequest, errors.New("新密码和旧密码不一致"))
+	//	return
+	//}
+	if err := db.DB.Where("id = ?", user.UUID).Updates(&user).Error; err != nil {
+		res.Error(c, 500, err)
+		return
+	}
+
 	res.Success(c, "更新密码成功")
 }

@@ -1,14 +1,18 @@
 package api
 
 import (
+	"TestGin/config"
 	_ "TestGin/docs"
+	"TestGin/middleware"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"time"
 )
 
 // RegisterRoutes 注册所有API路由
 func RegisterRoutes(r *gin.Engine) {
+	red := config.GetRedisClient()
 	// Swagger文档
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	r.Static("/static", "./static")
@@ -20,7 +24,7 @@ func RegisterRoutes(r *gin.Engine) {
 		article.POST("/add", AddArticle)
 		article.PUT("/update/:id", UpdateArticle)
 		//更新文章状态
-		article.PUT("/:id/status", UpdateArticleStatus)
+		article.PUT("/:uuid/status", UpdateArticleStatus)
 		article.DELETE("/delete/:id", DeleteArticle)
 		//article.GET("/list", ListArticle)
 		article.GET("/get/:id", GetArticle)
@@ -28,7 +32,7 @@ func RegisterRoutes(r *gin.Engine) {
 	user := v1.Group("/user")
 	{
 		user.POST("/add", AddUser)
-		user.GET("/list", ListUsers)
+		user.GET("/list", middleware.RedisCacheMiddleware(middleware.CacheOptions{RedisClient: red, TTL: 60 * time.Second}, ListUsers))
 		user.GET("/get/:id", GetUser)
 		update := user.Group("/update")
 		{

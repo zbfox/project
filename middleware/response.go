@@ -3,12 +3,15 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 type Response struct {
 	Code    int         `json:"code"`    // 自定义状态码
 	Message string      `json:"message"` // 提示信息
 	Data    interface{} `json:"data"`    // 返回数据
+	Time    string      `json:"time"`
 }
 
 // Success 成功返回 生成swagger提示
@@ -24,6 +27,7 @@ func Success(c *gin.Context, data interface{}) {
 		Code:    200,
 		Message: "success",
 		Data:    data,
+		Time:    strconv.FormatInt(time.Now().Unix(), 11),
 	})
 }
 func Error(c *gin.Context, code int, err error) {
@@ -31,5 +35,7 @@ func Error(c *gin.Context, code int, err error) {
 		Code:    code,
 		Message: err.Error(),
 		Data:    nil,
+		//返回当前时间戳
+		Time: strconv.FormatInt(time.Now().Unix(), 11),
 	})
 }
