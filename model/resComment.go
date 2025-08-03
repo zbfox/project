@@ -3,7 +3,6 @@ package model
 import (
 	ti "TestGin/util"
 	"encoding/json"
-	"log"
 	"time"
 )
 
@@ -25,7 +24,6 @@ func CommentToResponse(comments []CommentResponse) []CommentResponse {
 	var commentRes []CommentResponse
 	for _, c := range comments {
 		ctime, _ := time.Parse(time.RFC3339, c.CreatedAt)
-		log.Println(c.CreatedAt, "=====", ctime)
 		resp := CommentResponse{
 			ID:       c.ID,
 			PostID:   c.PostID,
@@ -37,7 +35,7 @@ func CommentToResponse(comments []CommentResponse) []CommentResponse {
 			CreatedAt: ti.FormatTime(ctime),
 		}
 
-		if c.ID != 0 {
+		if c.ID != 0 && c.URLs != "" {
 			var urls []string
 			err := json.Unmarshal([]byte(c.URLs), &urls)
 			if err != nil {

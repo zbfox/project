@@ -34,27 +34,30 @@ func RedisCacheMiddleware(opts CacheOptions, handler gin.HandlerFunc) gin.Handle
 			c.Data(200, "application/json", []byte(cached))
 			c.Abort()
 			return
+		} else {
+			// 响应拦截器
+			writer := &bodyWriter{ResponseWriter: c.Writer, body: bytes.NewBuffer(nil)}
+			c.Writer = writer
+			handler(c)
+			// 如果状态码是 200，写入缓存
+			if c.Writer.Status() == 200 {
+				go func() {
+					err := opts.RedisClient.Set(ctx, cacheKey, writer.body.String(), opts.TTL).Err()
+					if err == nil {
+						log.Printf("缓存成功: %s", cacheKey)
+					} else {
+						log.Printf("缓存失败: %s", cacheKey)
+					}
+				}()
+			}
 		}
 
-		log.Println("执行了")
-		// 响应拦截器
-		writer := &bodyWriter{ResponseWriter: c.Writer, body: bytes.NewBuffer(nil)}
-		c.Writer = writer
-		handler(c)
-
-		c.Next() // 执行后续逻辑
-
-		// 如果状态码是 200，写入缓存
-		if c.Writer.Status() == 200 {
-			opts.RedisClient.Set(ctx, cacheKey, writer.body.String(), opts.TTL)
-		}
 	}
 }
 
 // 默认的缓存 key（基于完整 URL）
 func defaultKeyFunc(c *gin.Context) string {
 	raw := c.Request.Method + ":" + c.Request.URL.RequestURI() + c.Request.Header.Get("token")
-	log.Println("返回：", raw)
 	sum := sha1.Sum([]byte(raw))
 	return "cache:" + hex.EncodeToString(sum[:])
 }
@@ -65,8 +68,8 @@ type bodyWriter struct {
 	body *bytes.Buffer
 }
 
+// Write 重写 Write 方法在调用 ResponseWriter.Write 时将内容写入 body
 func (w *bodyWriter) Write(b []byte) (int, error) {
 	w.body.Write(b)
 	return w.ResponseWriter.Write(b)
-	//cache2.CachePage()
 }

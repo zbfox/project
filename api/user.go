@@ -6,6 +6,7 @@ import (
 	"TestGin/model"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -27,38 +28,15 @@ func GetUser(c *gin.Context) {
 	// id, _ := strconv.Atoi(c.Param("id"))
 	uuid := c.Param("id")
 
-	ctx := context.Background()
-	cacheKey := fmt.Sprintf("user:%s", uuid)
-	userJson, err := redisClient.Get(ctx, cacheKey).Result()
-	if err == nil {
-		if err := json.Unmarshal([]byte(userJson), &u); err == nil {
-			us := model.UserToResponse(u)
-			c.JSON(200, gin.H{
-				"message": "user (from cache)",
-				"data":    us,
-			})
-			return
-		}
-	}
 	// 缓存未命中，查数据库
 	result := db.DB.Where("uuid = ?", uuid).First(&u)
 	if result.RowsAffected == 0 {
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "用户不存在",
-			"id":      uuid,
-		})
+		res.Error(c, http.StatusNotFound, errors.New("用户不存在"))
 		return
 	}
-	// 查到后写入缓存
-	userBytes, _ := json.Marshal(u)
-	redisClient.Set(ctx, cacheKey, userBytes, 0)
-
 	us := model.UserToResponse(u)
-	log.Printf("user: %+v\n", us)
-	c.JSON(200, gin.H{
-		"message": "user",
-		"data":    us,
-	})
+	res.Success(c, us)
+	return
 }
 
 // AddUser 添加用户

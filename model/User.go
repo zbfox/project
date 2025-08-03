@@ -38,10 +38,10 @@ func (u *User) AfterCreate(db *gorm.DB) (err error) {
 }
 
 // AfterFind 查询结束后执行
-func (u *User) AfterFind(db *gorm.DB) (err error) {
-	fmt.Println("AfterFind", u)
-	return nil
-}
+//func (u *User) AfterFind(db *gorm.DB) (err error) {
+//	fmt.Println("AfterFind", u)
+//	return nil
+//}
 
 // BeforeCreate 创建之前执行
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {

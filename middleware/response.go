@@ -30,12 +30,14 @@ func Success(c *gin.Context, data interface{}) {
 		Time:    strconv.FormatInt(time.Now().Unix(), 11),
 	})
 }
+
+// Error httpCode int不是必要参数
 func Error(c *gin.Context, code int, err error) {
-	c.JSON(http.StatusOK, Response{
-		Code:    code,
-		Message: err.Error(),
-		Data:    nil,
-		//返回当前时间戳
-		Time: strconv.FormatInt(time.Now().Unix(), 11),
+	//不写http_code就默认使用200 AbortWithStatusJSON中断请求并且返回json数据，不会执行后续处理
+	c.AbortWithStatusJSON(code, gin.H{
+		"code":    code,
+		"message": err.Error(),
+		"data":    nil,
+		"time":    strconv.FormatInt(time.Now().Unix(), 11),
 	})
 }

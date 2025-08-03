@@ -27,13 +27,13 @@ func RegisterRoutes(r *gin.Engine) {
 		article.PUT("/:uuid/status", UpdateArticleStatus)
 		article.DELETE("/delete/:id", DeleteArticle)
 		//article.GET("/list", ListArticle)
-		article.GET("/get/:id", GetArticle)
+		article.GET("/get/:id", middleware.RedisCacheMiddleware(middleware.CacheOptions{RedisClient: red, TTL: 60 * time.Second}, GetArticle))
 	}
 	user := v1.Group("/user")
 	{
 		user.POST("/add", AddUser)
 		user.GET("/list", middleware.RedisCacheMiddleware(middleware.CacheOptions{RedisClient: red, TTL: 60 * time.Second}, ListUsers))
-		user.GET("/get/:id", GetUser)
+		user.GET("/get/:id", middleware.RedisCacheMiddleware(middleware.CacheOptions{RedisClient: red, TTL: 60 * time.Second}, GetUser))
 		update := user.Group("/update")
 		{
 			update.POST("/password", UpdatePassword)
@@ -47,7 +47,7 @@ func RegisterRoutes(r *gin.Engine) {
 	comment := v1.Group("/comment")
 	{
 		comment.POST("/add", AddComment)
-		comment.GET("/list", ListComments)
+		comment.GET("/list", middleware.RedisCacheMiddleware(middleware.CacheOptions{RedisClient: red, TTL: 60 * time.Second}, ListComments))
 	}
 
 	// 其他路由
