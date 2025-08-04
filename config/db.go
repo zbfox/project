@@ -6,6 +6,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	"log"
 )
 
 var DB *gorm.DB
@@ -37,10 +38,9 @@ func InitDB() {
 
 	sqlDB.SetMaxIdleConns(c.MaxIdleConns)
 	sqlDB.SetMaxOpenConns(c.MaxOpenConns)
-
-	fmt.Println("数据库连接成功")
-	model.AutoMigrate(db)        // 创建用户表结构
-	model.AutoMigrateArticle(db) // 创建文章表结构
+	log.Println("数据库连接成功")
+	model.AutoMigrate(db) // 创建用户表结构
+	model.AutoMigrateArticle(db)
 	err = model.AutoMigrateComment(db)
 	if err != nil {
 		return

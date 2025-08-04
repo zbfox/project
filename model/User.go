@@ -1,6 +1,7 @@
 package model
 
 import (
+	"crypto/md5"
 	"fmt"
 	"time"
 
@@ -48,5 +49,9 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	if u.UUID == "" {
 		u.UUID = uuid.New().String()
 	}
+	//密码加密
+	h := md5.New()
+	h.Write([]byte(u.Password))
+	u.Password = fmt.Sprintf("%x", h.Sum(nil))
 	return
 }

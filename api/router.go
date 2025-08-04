@@ -31,7 +31,8 @@ func RegisterRoutes(r *gin.Engine) {
 	}
 	user := v1.Group("/user")
 	{
-		user.POST("/add", AddUser)
+		user.POST("/add", Register)
+		user.POST("/login", Login)
 		user.GET("/list", middleware.RedisCacheMiddleware(middleware.CacheOptions{RedisClient: red, TTL: 60 * time.Second}, ListUsers))
 		user.GET("/get/:id", middleware.RedisCacheMiddleware(middleware.CacheOptions{RedisClient: red, TTL: 60 * time.Second}, GetUser))
 		update := user.Group("/update")
@@ -57,8 +58,8 @@ func RegisterRoutes(r *gin.Engine) {
 		})
 	})
 
-	r.GET("/", func(c *gin.Context) {
-		//	重定向
-		c.Redirect(302, "https://www.baidu.com")
-	})
+	//r.GET("/", func(c *gin.Context) {
+	//	//	重定向
+	//	c.Redirect(302, "https://www.baidu.com")
+	//})
 }

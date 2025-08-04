@@ -32,9 +32,3 @@ func InitRedis() *redis.Client {
 func GetRedisClient() *redis.Client {
 	return rdb
 }
-
-// CreateRedisCache 创建go-cache NewRedisCache
-//func CreateRedisCache() {
-//	cache.New()
-//	return
-//}

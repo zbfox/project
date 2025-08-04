@@ -104,7 +104,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/article/{id}/status": {
+        "/api/article/{uuid}/status": {
             "put": {
                 "description": "更新文章状态",
                 "tags": [
@@ -263,6 +263,17 @@ const docTemplate = `{
                     "用户"
                 ],
                 "summary": "添加用户",
+                "parameters": [
+                    {
+                        "description": "用户信息",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "成功",
@@ -319,6 +330,37 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/model.UserResponse"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/login": {
+            "post": {
+                "description": "登录",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "登录",
+                "parameters": [
+                    {
+                        "description": "用户信息",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功",
+                        "schema": {
+                            "$ref": "#/definitions/middleware.Response"
                         }
                     }
                 }
@@ -400,6 +442,9 @@ const docTemplate = `{
                 },
                 "message": {
                     "description": "提示信息",
+                    "type": "string"
+                },
+                "time": {
                     "type": "string"
                 }
             }

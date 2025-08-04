@@ -5,7 +5,6 @@ import (
 	res "TestGin/middleware"
 	"TestGin/model"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -39,23 +38,26 @@ func GetUser(c *gin.Context) {
 	return
 }
 
-// AddUser 添加用户
+// Register  添加用户
 // @Summary 添加用户
 // @Tags 用户
 // @Produce json
+// @Param user body model.User true "用户信息"
 // @Success 200 {object} string "成功"
 // @Router /api/user/add [POST]
-func AddUser(c *gin.Context) {
+func Register(c *gin.Context) {
 	var user model.User
 	if err := c.ShouldBindJSON(&user); err != nil {
-
 		c.JSON(400, gin.H{
 			"message": "参数绑定失败",
 			"error":   err.Error(),
 		})
 		return
 	}
-
+	if err := db.DB.Where("email = ?", user.Email).Table("users").Error; err != nil {
+		res.Error(c, http.StatusBadRequest, errors.New("邮箱已被占用"))
+		return
+	}
 	if err := db.DB.Create(&user).Error; err != nil {
 		c.JSON(500, gin.H{
 			"message": "用户添加失败",
@@ -63,16 +65,11 @@ func AddUser(c *gin.Context) {
 		})
 		return
 	}
-	redisClient := db.GetRedisClient()
-	ctx := context.Background()
-	cacheKey := fmt.Sprintf("user:%d", user.ID)
-	userBytes, _ := json.Marshal(user)
-	redisClient.Set(ctx, cacheKey, userBytes, 0)
-
 	c.JSON(200, gin.H{
 		"message": "用户添加成功",
-		"data":    user,
+		"data":    "",
 	})
+	return
 }
 
 // ListUsers 用户列表
@@ -160,4 +157,15 @@ func UpdatePassword(c *gin.Context) {
 	}
 
 	res.Success(c, "更新密码成功")
+}
+
+// Login 登录
+// @Summary 登录
+// @Description 登录
+// @Produce json
+// @Tags 用户
+// @Param user body model.User true "用户信息"
+// @Success 200 {object} middleware.Response "成功"
+// @Router /api/user/login [POST]
+func Login(c *gin.Context) {
 }
