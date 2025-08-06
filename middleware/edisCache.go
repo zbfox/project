@@ -6,19 +6,20 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
+	redisChea "github.com/redis/go-redis/v9"
 	"log"
 	"time"
 )
 
 type CacheOptions struct {
-	RedisClient *redis.Client
+	RedisClient *redisChea.Client
 	TTL         time.Duration
 	KeyFunc     func(c *gin.Context) string // 自定义 key（可选）
 }
 
 // RedisCacheMiddleware 返回一个 Gin 中间件用于自动缓存
 func RedisCacheMiddleware(opts CacheOptions, handler gin.HandlerFunc) gin.HandlerFunc {
+
 	if opts.KeyFunc == nil {
 		opts.KeyFunc = defaultKeyFunc
 	}

@@ -17,7 +17,7 @@
 │   ├── config.go       # 配置加载
 │   ├── config.yml      # 配置文件
 │   ├── db.go           # 数据库连接
-│   └── redis.go        # Redis连接
+│   └── initRedis.go        # Redis连接
 ├── docs/               # Swagger 文档
 │   ├── docs.go
 │   ├── swagger.json
@@ -67,7 +67,7 @@ mysql:
   password: root
   dbname: testdb
 
-redis:
+initRedis:
   host: 127.0.0.1
   port: 6379
   username: admin

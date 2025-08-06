@@ -336,7 +336,7 @@ const docTemplate = `{
             }
         },
         "/api/user/login": {
-            "post": {
+            "get": {
                 "description": "登录",
                 "produces": [
                     "application/json"
@@ -347,13 +347,18 @@ const docTemplate = `{
                 "summary": "登录",
                 "parameters": [
                     {
-                        "description": "用户信息",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.User"
-                        }
+                        "type": "string",
+                        "description": "用户邮箱",
+                        "name": "Email",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "用户密码",
+                        "name": "Password",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -549,6 +554,10 @@ const docTemplate = `{
                 "username"
             ],
             "properties": {
+                "account": {
+                    "description": "账号，唯一",
+                    "type": "string"
+                },
                 "created_at": {
                     "description": "创建时间",
                     "type": "string"
@@ -602,9 +611,6 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "id": {
-                    "type": "integer"
-                },
                 "phone": {
                     "type": "string"
                 },
@@ -618,6 +624,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                },
+                "uuid": {
                     "type": "string"
                 }
             }

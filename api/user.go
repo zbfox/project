@@ -5,6 +5,7 @@ import (
 	res "TestGin/middleware"
 	"TestGin/model"
 	"context"
+	"crypto/md5"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -164,8 +165,40 @@ func UpdatePassword(c *gin.Context) {
 // @Description 登录
 // @Produce json
 // @Tags 用户
-// @Param user body model.User true "用户信息"
+// @Param Email query string true "用户邮箱"
+// @Param Password query string true "用户密码"
 // @Success 200 {object} middleware.Response "成功"
-// @Router /api/user/login [POST]
+// @Router /api/user/login [GET]
 func Login(c *gin.Context) {
+
+	//根据用户名以及密码查询用户
+	var user model.User
+	email := c.Query("Email")
+	password := c.Query("Password")
+
+	if email == "" || password == "" {
+		res.Error(c, 400, errors.New("参数错误"))
+	}
+	h := md5.New()
+	h.Write([]byte(password))
+	password = fmt.Sprintf("%x", h.Sum(nil))
+
+	//只获取用户的UUID
+	err := db.DB.Where("email = ?", email).Where("password = ?", password).Table("users").First(&user).Error
+	log.Printf("user: %v", user)
+	if err != nil {
+		// 处理找不到或其他错误
+		res.Error(c, 400, err)
+	}
+	token, err := res.Login(user.UUID, user.Username)
+	if err != nil {
+		res.Error(c, 400, err)
+	}
+	//把token添加到响应头中
+	c.Header("Authorization", "Bearer "+token.AccessToken)
+	res.Success(c, map[string]interface{}{
+		"UUID":    user.UUID,
+		"Message": "登录成功",
+	})
+
 }

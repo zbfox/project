@@ -5,7 +5,7 @@ import (
 )
 
 type UserResponse struct {
-	ID        uint   `json:"id"`
+	UUID      string `json:"uuid"`
 	Username  string `json:"username"`
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
@@ -25,7 +25,7 @@ func UserToResponse(u User) UserResponse {
 		deletedAt = ""
 	}
 	return UserResponse{
-		ID:        u.ID,
+		UUID:      u.UUID,
 		Username:  u.Username,
 		Email:     u.Email,
 		Phone:     u.Phone,

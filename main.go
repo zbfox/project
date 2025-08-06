@@ -3,6 +3,7 @@ package main
 import (
 	"TestGin/api"
 	"TestGin/config"
+	"TestGin/middleware"
 	"TestGin/util"
 	"github.com/gin-gonic/gin"
 )
@@ -11,8 +12,9 @@ func main() {
 	// 创建Gin引擎
 	r := gin.Default()
 	config.InitConfig()
+	rdb := config.InitRedis()
+	middleware.InitJWTMiddleware(rdb)
 	config.InitDB()
-	config.InitRedis()
 	util.InitWebsocket(r)
 
 	//fmt.Println("MySQL Host:", config.Conf.MySQL.Host)
