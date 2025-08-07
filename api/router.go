@@ -19,6 +19,7 @@ func RegisterRoutes(r *gin.Engine) {
 
 	// API CURD 分组
 	v1 := r.Group("/api")
+	v1.Use(middleware.JWTAuthMiddleware())
 	article := v1.Group("/article")
 	{
 		article.POST("/add", AddArticle)
@@ -30,9 +31,9 @@ func RegisterRoutes(r *gin.Engine) {
 		article.GET("/get/:id", middleware.RedisCacheMiddleware(middleware.CacheOptions{RedisClient: red, TTL: 60 * time.Second}, GetArticle))
 	}
 	user := v1.Group("/user")
-	user.Use(middleware.JWTAuthMiddleware())
 	{
 		user.POST("/add", Register)
+		user.POST("/refresh", RefreshToken)
 		user.GET("/login", Login)
 		user.GET("/list", middleware.RedisCacheMiddleware(middleware.CacheOptions{RedisClient: red, TTL: 60 * time.Second}, ListUsers))
 		user.GET("/get/:id", middleware.RedisCacheMiddleware(middleware.CacheOptions{RedisClient: red, TTL: 60 * time.Second}, GetUser))

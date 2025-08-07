@@ -16,6 +16,7 @@ import (
 // @Tags 文章
 // @Description 删除文章
 // @Param id path int true "文章ID"
+// @Param   Authorization  header  string  true  "Bearer Token"
 // @Success 200 {object} string  "文章信息"
 // @Router /api/articles/delete/:id [delete]
 func DeleteArticle(c *gin.Context) {
@@ -33,6 +34,7 @@ func DeleteArticle(c *gin.Context) {
 // @Description 查询文章
 // @Tags 文章
 // @Param id path int true "文章ID"
+// @Param   Authorization  header  string  true  "Bearer Token"
 // @Success 200 {object} model.ArticleResponse  "文章信息"
 // @Router /api/article/get/:id [get]
 func GetArticle(c *gin.Context) {
@@ -60,6 +62,7 @@ func GetArticle(c *gin.Context) {
 // @Description 更新文章状态
 // @Tags 文章
 // @Param id path int true "文章ID"
+// @Param   Authorization  header  string  true  "Bearer Token"
 // @Param request body model.ArticleStatus true "请求体 (status: 0=Draft, 1=Pending, 2=Published)"
 // @Success 200 {object} middleware.Response "更新成功返回"
 // @Router /api/article/{uuid}/status [put]
@@ -77,6 +80,7 @@ func UpdateArticleStatus(c *gin.Context) {
 // @Summary 更新文章
 // @Description 更新文章
 // @Tags 文章
+// @Param   Authorization  header  string  true  "Bearer Token"
 // @Param id path int true "文章ID"
 // @Param request body model.Article true "请求体"
 // @Success 200 {object} middleware.Response "更新成功返回"
@@ -95,6 +99,7 @@ func UpdateArticle(c *gin.Context) {
 // @Summary 添加文章
 // @Description 添加文章
 // @Tags 文章
+// @Param   Authorization  header  string  true  "Bearer Token"
 // @Param request body model.Article true "请求体"
 // @Success 200 {object} middleware.Response "添加成功返回"
 // @Router /api/article/add [post]

@@ -143,6 +143,11 @@ paths:
     put:
       description: 更新文章
       parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: 文章ID
         in: path
         name: id
@@ -171,6 +176,11 @@ paths:
         name: id
         required: true
         type: integer
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: '请求体 (status: 0=Draft, 1=Pending, 2=Published)'
         in: body
         name: request
@@ -189,6 +199,11 @@ paths:
     post:
       description: 添加文章
       parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: 请求体
         in: body
         name: request
@@ -212,6 +227,11 @@ paths:
         name: id
         required: true
         type: integer
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       responses:
         "200":
           description: 文章信息
@@ -229,6 +249,11 @@ paths:
         name: id
         required: true
         type: integer
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       responses:
         "200":
           description: 文章信息
@@ -272,6 +297,11 @@ paths:
         name: files
         required: true
         type: file
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       responses:
         "200":
           description: '{"code":200,"data":{},"msg":"操作成功"}'
@@ -289,6 +319,11 @@ paths:
         name: postId
         required: true
         type: integer
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       responses:
         "200":
           description: '{"code":200,"data":{},"msg":"操作成功"}'
@@ -300,6 +335,11 @@ paths:
   /api/user/add:
     post:
       parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: 用户信息
         in: body
         name: user
@@ -319,6 +359,11 @@ paths:
   /api/user/get/:id:
     get:
       parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: 用户ID
         in: path
         name: id
@@ -337,6 +382,12 @@ paths:
   /api/user/list:
     get:
       description: 返回所有用户信息
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -372,7 +423,24 @@ paths:
             $ref: '#/definitions/middleware.Response'
       summary: 登录
       tags:
-      - 用户
+      - 登录
+  /api/user/refresh:
+    post:
+      consumes:
+      - application/json
+      description: 刷新token
+      parameters:
+      - description: 刷新token
+        in: formData
+        name: refresh_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: 刷新token
+      tags:
+      - 登录
   /api/user/update/password:
     post:
       description: 更新用户密码

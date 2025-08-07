@@ -58,7 +58,13 @@ func RedisCacheMiddleware(opts CacheOptions, handler gin.HandlerFunc) gin.Handle
 
 // 默认的缓存 key（基于完整 URL）
 func defaultKeyFunc(c *gin.Context) string {
-	raw := c.Request.Method + ":" + c.Request.URL.RequestURI() + c.Request.Header.Get("token")
+	//log.Printf("请求头:%v,%v,%v\n", c.Request.Method, c.Request.URL.RequestURI(), c.Request.Header.Get("Authorization"))
+	uid := ParseUUID(c)
+	if uid == "" {
+		// 反射
+		uid = c.Request.Header.Get("Authorization")
+	}
+	raw := c.Request.Method + ":" + c.Request.URL.RequestURI() + uid
 	sum := sha1.Sum([]byte(raw))
 	return "cache:" + hex.EncodeToString(sum[:])
 }

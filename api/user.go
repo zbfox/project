@@ -20,6 +20,7 @@ var redisClient = db.GetRedisClient()
 // @Tags 用户
 // @Produce json
 // @Success 200 {object} string "成功"
+// @Param   Authorization  header  string  true  "Bearer Token"
 // @Param id path int true "用户ID"
 // @Router /api/user/get/:id [get]
 func GetUser(c *gin.Context) {
@@ -43,6 +44,7 @@ func GetUser(c *gin.Context) {
 // @Summary 添加用户
 // @Tags 用户
 // @Produce json
+// @Param   Authorization  header  string  true  "Bearer Token"
 // @Param user body model.User true "用户信息"
 // @Success 200 {object} string "成功"
 // @Router /api/user/add [POST]
@@ -78,6 +80,7 @@ func Register(c *gin.Context) {
 // @Tags 用户
 // @Description 返回所有用户信息
 // @Produce json
+// @Param   Authorization  header  string  true  "Bearer Token"
 // @Success 200 {array} model.UserResponse "用户列表"
 // @Router /api/user/list [GET]
 func ListUsers(c *gin.Context) {
@@ -164,7 +167,7 @@ func UpdatePassword(c *gin.Context) {
 // @Summary 登录
 // @Description 登录
 // @Produce json
-// @Tags 用户
+// @Tags 登录
 // @Param Email query string true "用户邮箱"
 // @Param Password query string true "用户密码"
 // @Success 200 {object} middleware.Response "成功"
@@ -201,4 +204,24 @@ func Login(c *gin.Context) {
 		"Message": "登录成功",
 	})
 
+}
+
+// RefreshToken 刷新token
+// @Summary 刷新token
+// @Description 刷新token
+// @Tags 登录
+// @Accept json
+// @Produce json
+// @Param refresh_token formData string true "刷新token"
+// @Router /api/user/refresh [post]
+func RefreshToken(c *gin.Context) {
+	rtk := c.PostForm("refresh_token")
+	token, err := res.RefreshAccessToken(rtk)
+	if err != nil {
+		res.Error(c, 400, err)
+	}
+	c.Header("Authorization", "Bearer "+token.AccessToken)
+	res.Success(c, map[string]interface{}{
+		"refresh_token": token.RefreshToken,
+	})
 }

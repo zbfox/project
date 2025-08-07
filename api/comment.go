@@ -34,6 +34,7 @@ type UploadItems struct {
 // @Param parentId formData int false "父评论ID"
 // @Param type formData int true "资源类型 image/video"
 // @Param files formData file true "上传文件"
+// @Param   Authorization  header  string  true  "Bearer Token"
 // @Success 200 {object} res.Response "{"code":200,"data":{},"msg":"操作成功"}"
 // @Router /api/comment/add [post]
 func AddComment(c *gin.Context) {
@@ -156,6 +157,7 @@ func AddComment(c *gin.Context) {
 // @Description 获取评论列表
 // @Tags 评论
 // @Param postId query int true "帖子ID"
+// @Param   Authorization  header  string  true  "Bearer Token"
 // @Success 200 {object} res.Response "{"code":200,"data":{},"msg":"操作成功"}"
 // @Router /api/comment/list [get]
 func ListComments(c *gin.Context) {
