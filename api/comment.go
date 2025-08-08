@@ -182,14 +182,13 @@ func ListComments(c *gin.Context) {
 		Where("c.post_id = ?", postIDInt).
 		Find(&results).
 		Error
-
-	//log.Printf("results:%+v\n", results)
-	resultsRes := model.CommentToResponse(results)
-
 	if err != nil {
 		res.Error(c, 500, err)
 		return
 	}
-
+	//log.Printf("results:%+v\n", results)
+	resultsRes := model.CommentToResponse(results)
+	//评论重组
+	resultsRes, _ = model.CommentsReorganize(resultsRes)
 	res.Success(c, resultsRes)
 }

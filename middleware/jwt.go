@@ -168,7 +168,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		// 解析令牌
 		claims, err := ParseToken(parts[1])
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "令牌无效或者过期"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "令牌无效或者过期", "code": http.StatusUnauthorized})
 			c.Abort()
 			return
 		}
@@ -215,6 +215,10 @@ func RefreshAccessToken(refreshTokenString string) (*TokenPair, error) {
 	//2.从缓存中获取对应的刷新令牌
 	refreshKey := fmt.Sprintf("refresh:%s", claims.UserID)
 	storedRefreshToken, err := initRedis.Get(ctx, refreshKey).Result()
+	if err != nil {
+		log.Printf("无法获取刷新令牌: %v", err)
+		return nil, errors.New("刷新令牌已过期")
+	}
 	//3.对比刷新令牌
 	if storedRefreshToken != refreshTokenString {
 		log.Printf("刷新令牌不匹配")
@@ -225,6 +229,7 @@ func RefreshAccessToken(refreshTokenString string) (*TokenPair, error) {
 		}
 		return nil, errors.New("检测到安全威胁，所有令牌已被撤销")
 	}
+	//获取到用户名
 	tokenPair, err1 := Login(claims.UserID, claims.Username)
 	if err != nil {
 		return nil, err1

@@ -169,6 +169,8 @@ func UpdatePassword(c *gin.Context) {
 // @Produce json
 // @Tags 登录
 // @Param Email query string true "用户邮箱"
+// @Param Account query string true "账号"
+// @Param Phone query string true "手机号"
 // @Param Password query string true "用户密码"
 // @Success 200 {object} middleware.Response "成功"
 // @Router /api/user/login [GET]
@@ -176,29 +178,46 @@ func Login(c *gin.Context) {
 
 	//根据用户名以及密码查询用户
 	var user model.User
+	var err error
 	email := c.Query("Email")
+	//account := c.Query("Account")
+	phone := c.Query("Phone")
 	password := c.Query("Password")
 
-	if email == "" || password == "" {
+	if (email == "" && password == "") || (phone == "" && password == "") {
 		res.Error(c, 400, errors.New("参数错误"))
+		return
 	}
 	h := md5.New()
 	h.Write([]byte(password))
 	password = fmt.Sprintf("%x", h.Sum(nil))
 
 	//只获取用户的UUID
-	err := db.DB.Where("email = ?", email).Where("password = ?", password).Table("users").First(&user).Error
+	if phone != "" && email == "" {
+		err = db.DB.Where("phone = ?", phone).Where("password = ?", password).Table("users").First(&user).Error
+	} else if phone == "" && email != "" {
+		err = db.DB.Where("email = ?", email).Where("password = ?", password).Table("users").First(&user).Error
+	}
+
 	log.Printf("user: %v", user)
 	if err != nil {
 		// 处理找不到或其他错误
 		res.Error(c, 400, err)
+		return
 	}
-	token, err := res.Login(user.UUID, user.Username)
-	if err != nil {
+	token, errs := res.Login(user.UUID, user.Username)
+	if errs != nil {
 		res.Error(c, 400, err)
+		return
 	}
 	//把token添加到响应头中
 	c.Header("Authorization", "Bearer "+token.AccessToken)
+	c.SetCookie("refresh_token", token.RefreshToken, 3600*24*7, "/", "", true, true)
+	//_, errs = c.Cookie(token.RefreshToken)
+	//if errs != nil {
+	//	res.Error(c, 400, err)
+	//	return
+	//}
 	res.Success(c, map[string]interface{}{
 		"UUID":    user.UUID,
 		"Message": "登录成功",
@@ -216,12 +235,20 @@ func Login(c *gin.Context) {
 // @Router /api/user/refresh [post]
 func RefreshToken(c *gin.Context) {
 	rtk := c.PostForm("refresh_token")
+	if rtk == "" {
+		res.Error(c, 400, errors.New("参数错误"))
+		return
+	}
 	token, err := res.RefreshAccessToken(rtk)
 	if err != nil {
 		res.Error(c, 400, err)
+		return
 	}
 	c.Header("Authorization", "Bearer "+token.AccessToken)
-	res.Success(c, map[string]interface{}{
-		"refresh_token": token.RefreshToken,
-	})
+	c.SetCookie("refresh_token", token.RefreshToken, 3600*24*7, "/", "", true, true)
+	//if err != nil {
+	//	res.Error(c, 400, err)
+	//	return
+	//}
+	res.Success(c, "")
 }

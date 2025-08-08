@@ -45,6 +45,6 @@ func InitDB() {
 	if err != nil {
 		return
 	}
-	model.AutoMigrateEmoji(db) // 创建表情包表结构
+	//model.AutoMigrateEmoji(db) // 创建表情包表结构
 	DB = db
 }
