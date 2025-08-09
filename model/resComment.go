@@ -3,7 +3,6 @@ package model
 import (
 	ti "TestGin/util"
 	"encoding/json"
-	"errors"
 	"time"
 )
 
@@ -51,12 +50,19 @@ func CommentToResponse(comments []CommentResponse) []CommentResponse {
 }
 
 // CommentsReorganize 重组表情包
-func CommentsReorganize(commentsEq []CommentResponse) ([]CommentResponse, error) {
-	var comments []CommentResponse
-	for _, c := range commentsEq {
-		if c.ParentID == 0 {
-			comments = append(comments, c)
-		}
+func CommentsReorganize(commentsRes []CommentResponse) ([]CommentResponse, error) {
+	//step1:分组ParentID ->子评论,根据parentID分组评论
+	grouped := make(map[uint][]CommentResponse)
+	for _, c := range commentsRes {
+		grouped[c.ParentID] = append(grouped[c.ParentID], c)
 	}
-	return comments, errors.New("not implemented")
+	var buildTree func(parentID uint) []CommentResponse
+	buildTree = func(parentID uint) []CommentResponse {
+		children := grouped[parentID]
+		for i := range children {
+			children[i].Children = buildTree(children[i].ID)
+		}
+		return children
+	}
+	return buildTree(0), nil
 }

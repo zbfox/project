@@ -10,12 +10,14 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+
+	"github.com/gin-gonic/gin"
 )
 
 type UploadItems struct {
@@ -53,7 +55,7 @@ func AddComment(c *gin.Context) {
 
 	formFile, err := c.MultipartForm()
 	files := formFile.File["files"]
-	uploadPath := "/static"
+	uploadPath := "static"
 
 	if err != nil {
 		res.Error(c, http.StatusInternalServerError, err)
@@ -76,17 +78,16 @@ func AddComment(c *gin.Context) {
 			res.Error(c, http.StatusInternalServerError, err)
 			return
 		}
-		// 生成目标文件名 128位的uuid
-		newV6, err := uuid.NewV6()
-		fileName := "/image/" + time.Now().Format("2006010215040") + newV6.String() + fileType.Extension
-		saveFilePath := uploadPath + fileName
+		unix, _ := uuid.NewRandom()
+		fileName := filepath.Join("image", time.Now().Format("20060102"), unix.String()+fileType.Extension)
+		saveFilePath := filepath.Join(uploadPath, fileName)
 
 		if strings.HasPrefix(fileType.MimeType, "image/") {
 			imageCount++
 		} else if strings.HasPrefix(fileType.MimeType, "video/") {
 			videoCount++
 		}
-		log.Printf("imageCount:%v,videoCount:%v\n", imageCount, videoCount)
+		log.Printf("file：%v\n", saveFilePath)
 		filePaths = append(filePaths, UploadItems{
 			File:     file,
 			FileName: saveFilePath,
@@ -113,8 +114,10 @@ func AddComment(c *gin.Context) {
 			res.Error(c, http.StatusInternalServerError, err)
 			return
 		}
-		log.Printf("上传成功: %s", file.FileName)
-		fileList = append(fileList, file.FileName)
+		// 统一为URL风格路径，存入数据库
+		urlStyle := strings.ReplaceAll(file.FileName, "\\", "/")
+		log.Printf("保存成功: %s", urlStyle)
+		fileList = append(fileList, urlStyle)
 	}
 
 	form := model.Comment{
@@ -133,9 +136,9 @@ func AddComment(c *gin.Context) {
 	}
 
 	tx := db.DB.Begin()
-	if err1 := db.DB.Create(&form).Error; err1 != nil {
+	if err1 := tx.Create(&form).Error; err1 != nil {
 		tx.Rollback()
-		res.Error(c, 500, err)
+		res.Error(c, 500, err1)
 		return
 	}
 
@@ -144,9 +147,13 @@ func AddComment(c *gin.Context) {
 		Type:      model.ResourceType(typeFile),
 		URLs:      string(urlJSON),
 	}
-	if err2 := db.DB.Debug().Create(&resource).Error; err2 != nil {
+	if err2 := tx.Debug().Create(&resource).Error; err2 != nil {
 		tx.Rollback()
-		res.Error(c, 500, err)
+		res.Error(c, 500, err2)
+		return
+	}
+	if commitErr := tx.Commit().Error; commitErr != nil {
+		res.Error(c, 500, commitErr)
 		return
 	}
 	res.Success(c, "")
@@ -176,9 +183,11 @@ func ListComments(c *gin.Context) {
     c.parent_id, 
     r.type, 
     r.urls, 
-    c.created_at
+    c.created_at,
+    u.username
   `).
 		Joins("LEFT JOIN resources AS r ON r.comment_id = c.id ").
+		Joins("LEFT JOIN users AS u ON u.id = c.user_id ").
 		Where("c.post_id = ?", postIDInt).
 		Find(&results).
 		Error

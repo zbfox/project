@@ -5,10 +5,10 @@ import (
 	res "TestGin/middleware"
 	"TestGin/model"
 	"context"
-	"crypto/md5"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
 )
@@ -184,25 +184,27 @@ func Login(c *gin.Context) {
 	phone := c.Query("Phone")
 	password := c.Query("Password")
 
-	if (email == "" && password == "") || (phone == "" && password == "") {
+	if password == "" || (email == "" && phone == "") {
 		res.Error(c, 400, errors.New("参数错误"))
 		return
 	}
-	h := md5.New()
-	h.Write([]byte(password))
-	password = fmt.Sprintf("%x", h.Sum(nil))
 
-	//只获取用户的UUID
-	if phone != "" && email == "" {
-		err = db.DB.Where("phone = ?", phone).Where("password = ?", password).Table("users").First(&user).Error
-	} else if phone == "" && email != "" {
-		err = db.DB.Where("email = ?", email).Where("password = ?", password).Table("users").First(&user).Error
+	// 查找用户（只按 email 或 phone）
+	query := db.DB.Table("users")
+	if phone != "" {
+		query = query.Where("phone = ?", phone)
+	} else {
+		query = query.Where("email = ?", email)
+	}
+	if err := query.First(&user).Error; err != nil {
+		res.Error(c, 400, errors.New("用户不存在"))
+		return
 	}
 
 	log.Printf("user: %v", user)
-	if err != nil {
-		// 处理找不到或其他错误
-		res.Error(c, 400, err)
+	// 验证密码（bcrypt）
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		res.Error(c, 400, errors.New("密码错误"))
 		return
 	}
 	token, errs := res.Login(user.UUID, user.Username)
@@ -213,11 +215,6 @@ func Login(c *gin.Context) {
 	//把token添加到响应头中
 	c.Header("Authorization", "Bearer "+token.AccessToken)
 	c.SetCookie("refresh_token", token.RefreshToken, 3600*24*7, "/", "", true, true)
-	//_, errs = c.Cookie(token.RefreshToken)
-	//if errs != nil {
-	//	res.Error(c, 400, err)
-	//	return
-	//}
 	res.Success(c, map[string]interface{}{
 		"UUID":    user.UUID,
 		"Message": "登录成功",

@@ -19,7 +19,7 @@ func RegisterRoutes(r *gin.Engine) {
 
 	// API CURD 分组
 	v1 := r.Group("/api")
-	v1.Use(middleware.JWTAuthMiddleware())
+	//v1.Use(middleware.JWTAuthMiddleware())
 	article := v1.Group("/article")
 	{
 		article.POST("/add", AddArticle)
