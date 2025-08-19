@@ -4,10 +4,12 @@ import (
 	"TestGin/config"
 	_ "TestGin/docs"
 	"TestGin/middleware"
+	"TestGin/util"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"time"
 )
 
 // RegisterRoutes 注册所有API路由
@@ -20,6 +22,8 @@ func RegisterRoutes(r *gin.Engine) {
 	// API CURD 分组
 	v1 := r.Group("/api")
 	//v1.Use(middleware.JWTAuthMiddleware())
+	// WebSocket 路由
+	r.GET("/ws", util.HandleWebsocket)
 	article := v1.Group("/article")
 	{
 		article.POST("/add", AddArticle)

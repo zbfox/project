@@ -20,7 +20,7 @@ func main() {
 	//fmt.Println("MySQL Host:", config.Conf.MySQL.Host)
 	// 注册路由
 	api.RegisterRoutes(r)
-
+	
 	// 启动服务器
 	err := r.Run(":8080")
 	if err != nil {
