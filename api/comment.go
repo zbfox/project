@@ -42,14 +42,11 @@ type UploadItems struct {
 func AddComment(c *gin.Context) {
 
 	content := c.PostForm("content")
-	postID := c.PostForm("postId")
-	userID := c.PostForm("userId")
-	parentID := c.PostForm("parentId")
 	typeFile, _ := strconv.Atoi(c.PostForm("type"))
 
-	postIDInt, _ := strconv.Atoi(postID)
-	userIDInt, _ := strconv.Atoi(userID)
-	parentIDInt, _ := strconv.Atoi(parentID)
+	postIDInt, _ := strconv.Atoi(c.PostForm("postId"))
+	userIDInt, _ := strconv.Atoi(c.PostForm("userId"))
+	parentIDInt, _ := strconv.Atoi(c.PostForm("parentId"))
 	parentIDTo := uint(parentIDInt)
 	parentIDPtr := &parentIDTo // parentIDPtr 类型为 *uint
 
