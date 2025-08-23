@@ -495,20 +495,19 @@ paths:
     get:
       consumes:
       - application/json
-      description: 升级并处理WebSocket连接
-      parameters:
-      - description: 用户ID
-        in: query
-        name: userId
-        type: string
+      description: 通过WebSocket建立连接
       produces:
       - application/json
       responses:
         "200":
-          description: 成功
+          description: 连接成功
+          schema:
+            type: string
+        "500":
+          description: 连接失败
           schema:
             type: string
       summary: WebSocket连接
       tags:
-      - WebSocket
+      - websocket
 swagger: "2.0"

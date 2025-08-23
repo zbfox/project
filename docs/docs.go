@@ -546,7 +546,7 @@ const docTemplate = `{
         },
         "/ws": {
             "get": {
-                "description": "升级并处理WebSocket连接",
+                "description": "通过WebSocket建立连接",
                 "consumes": [
                     "application/json"
                 ],
@@ -554,20 +554,18 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "WebSocket"
+                    "websocket"
                 ],
                 "summary": "WebSocket连接",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "用户ID",
-                        "name": "userId",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
-                        "description": "成功",
+                        "description": "连接成功",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "连接失败",
                         "schema": {
                             "type": "string"
                         }

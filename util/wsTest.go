@@ -1,5 +1,7 @@
 package util
 
+/**
+
 import (
 	"encoding/json"
 	"fmt"
@@ -8,6 +10,8 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
+	"strconv"
+	"sync"
 )
 
 var upgrade = websocket.Upgrader{
@@ -17,6 +21,18 @@ var upgrade = websocket.Upgrader{
 		return true // 允许所有跨域请求，生产环境请限制来源
 	},
 }
+
+type Client struct {
+	ID   string
+	Conn *websocket.Conn
+}
+
+var (
+	clients     = make(map[string]*Client) // 使用ID作为键
+	clientCount = 0                        // 客户端计数器
+	mu          sync.Mutex                 // 保护对clients的并发访问
+
+)
 
 // InitWebsocket 初始化WebSocket模块（预留，如需）
 // 不再在此注册路由，由 api 层注册路由到 HandleWebsocket
@@ -41,19 +57,36 @@ func HandleWebsocket(c *gin.Context) {
 	if userID == "" {
 		userID = uuid.NewString()
 	}
+
 	conn, err := upgrade.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Println("升级WebSocket连接失败:", err)
 		return
 	}
+	// 生成唯一ID
+	mu.Lock()
+	clientCount++
+	clientID := strconv.Itoa(clientCount) // 将计数器转换为字符串作为ID
+	mu.Unlock()
+
+	client := &Client{ID: clientID, Conn: conn}
+
 	defer func(conn *websocket.Conn) {
+		mu.Lock()                 // 锁定
+		delete(clients, clientID) // 从客户端列表中删除
+		mu.Unlock()               // 解锁
 		//关闭WebSocket连接
 		err := conn.Close()
 		if err != nil {
 			log.Println("关闭WebSocket连接失败:", err)
 			return
+		} else {
+			log.Println("关闭WebSocket连接成功")
 		}
 	}(conn)
+	mu.Lock()
+	clients[clientID] = client
+	mu.Unlock()
 	for {
 		messageType, message, err := conn.ReadMessage()
 		if err != nil {
@@ -75,3 +108,4 @@ func HandleWebsocket(c *gin.Context) {
 		}
 	}
 }
+**/
